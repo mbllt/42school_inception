@@ -1,0 +1,69 @@
+version: "3"
+services:
+  mariadb:
+    container_name: mariadb
+    build:
+      context: ./requirements/mariadb
+      dockerfile: Dockerfile
+      args:
+        DB_ROOT_PWD: "${DB_ROOT_PWD}"
+        DB_NAME: "${DB_NAME}"
+        DB_USR: "${DB_USR}"
+        DB_PWD: "${DB_PWD}"
+    restart: unless-stopped
+    volumes:
+      - db-data:/var/lib/mysql
+    networks:
+      - net_back
+    env_file:
+      - ".env"
+
+  wordpress:
+    depends_on:
+      - mariadb
+    container_name: wordpress
+    build: ./requirements/wordpress
+    restart: unless-stopped
+    volumes:
+      - wp-data:/var/www/html
+    networks:
+      - net_back
+      - net_front
+    env_file:
+      - ".env"
+
+  nginx:
+    depends_on:
+      - wordpress
+    container_name: nginx
+    build: ./requirements/nginx
+    restart: unless-stopped
+    volumes:
+        - wp-data:/var/www/html
+    networks:
+      - net_front
+    ports:
+        - "443:443"
+    env_file:
+        - ".env"
+    stdin_open: true
+    tty: true
+
+volumes:
+  db-data:
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: '/home/mballet/data/mysql'
+
+  wp-data:
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: '/home/mballet/data/html'
+
+networks:
+  net_back:
+  net_front:

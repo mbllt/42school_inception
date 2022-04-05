@@ -1,0 +1,33 @@
+server {
+        listen 443 ssl default_server;
+        listen [::]:443 ssl default_server;
+
+        ssl on;
+        ssl_certificate 	/etc/nginx/nginx-selfsigned.crt;
+        ssl_certificate_key /etc/nginx/nginx-selfsigned.key;
+		ssl_protocols TLSv1.2 TLSv1.3;
+
+		root /var/www/html/wordpress;
+
+        index index.php index.html index.htm index.nginx-debian.html;
+
+        server_name mballet.42.fr www.mballet.42.fr;
+		
+		include mime.types;
+		default_type application/octet-stream;
+
+		autoindex on;
+
+		# location /{
+		# 	try_files $uri $uri/ =404;
+		# 	autoindex on;
+		# }
+		
+		# pass the PHP scripts to FastCGI server listening on wordpress:9000
+		location ~* \.php$ {
+			fastcgi_pass wordpress:9000;
+			fastcgi_index index.php;
+			include fastcgi_params;
+			fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+		}
+}
